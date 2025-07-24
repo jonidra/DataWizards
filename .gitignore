@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Config / env
+.env
+
+# Data files
+data/raw/
+data/processed/
+
+# Parquet / binaries
+*.parquet
+*.csv
+
+# VSCode
+.vscode/
+
+
