@@ -7,7 +7,7 @@ docker-compose up --build -d spark
 # 2) Run the ETL inside a fresh Spark container, with the service’s environment & volumes
 docker-compose run --rm spark \
   spark-submit \
-    --master local[*] \
+    --master local[4] \
     etl/etl.py \
     --config config/config.yaml
 

@@ -3,7 +3,6 @@ import yaml
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, year, coalesce, to_date, try_to_timestamp, lit
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description="PySpark ETL for Sales Analysis")
     parser.add_argument(
@@ -13,19 +12,18 @@ def parse_args():
     )
     return parser.parse_args()
 
-
 def load_config(path: str) -> dict:
     with open(path, "r") as f:
         return yaml.safe_load(f)
-
 
 def main():
     # 1) Parse CLI args and load config
     args = parse_args()
     cfg = load_config(args.config)
 
-    raw_path = cfg["etl"]["raw_data_path"]
+    raw_path       = cfg["etl"]["raw_data_path"]
     processed_path = cfg["etl"]["processed_data_path"]
+    db_cfg         = cfg.get("db", {})
 
     # 2) Initialize Spark
     spark = SparkSession.builder \
@@ -33,14 +31,13 @@ def main():
         .getOrCreate()
 
     # 3) Extract: read all source CSVs
-    city_df = spark.read.csv(f"{raw_path}/city.csv", header=True, inferSchema=True)
-    customer_df = spark.read.csv(f"{raw_path}/customer.csv", header=True, inferSchema=True)
-    product_df = spark.read.csv(f"{raw_path}/product.csv", header=True, inferSchema=True)
-    category_df = spark.read.csv(f"{raw_path}/product_category.csv", header=True, inferSchema=True)
-    install_df = spark.read.csv(f"{raw_path}/installation.csv", header=True, inferSchema=False)
+    city_df      = spark.read.csv(f"{raw_path}/city.csv",             header=True, inferSchema=True)
+    customer_df  = spark.read.csv(f"{raw_path}/customer.csv",         header=True, inferSchema=True)
+    product_df   = spark.read.csv(f"{raw_path}/product.csv",          header=True, inferSchema=True)
+    category_df  = spark.read.csv(f"{raw_path}/product_category.csv", header=True, inferSchema=True)
+    install_df   = spark.read.csv(f"{raw_path}/installation.csv",     header=True, inferSchema=False)
 
     # 4) Transform: parse mixed-format timestamps into a single column
-    # Use lit() to ensure format strings are treated as literals
     dt_iso = try_to_timestamp(col("date"), lit("yyyy-MM-dd HH:mm:ss"))
     dt_us  = try_to_timestamp(col("date"), lit("MM-dd-yyyy HH:mm:ss"))
     install_ts_df = install_df.withColumn("install_ts", coalesce(dt_iso, dt_us))
@@ -65,12 +62,26 @@ def main():
         )
     )
 
-    # 7) Load: write the transformed base table out as Parquet
+    # 7a) Write out as Parquet
     base.write.mode("overwrite").parquet(f"{processed_path}/base_table.parquet")
+
+    # 7b) *Upload* into Postgres via JDBC (if db config is provided)
+    if db_cfg:
+        jdbc_url = (
+            f"jdbc:postgresql://{db_cfg['host']}:{db_cfg['port']}/"
+            f"{db_cfg['database']}"
+        )
+        db_props = {
+            "user": db_cfg["user"],
+            "password": db_cfg["password"],
+            "driver": "org.postgresql.Driver"
+        }
+        base.write \
+            .mode("overwrite") \
+            .jdbc(url=jdbc_url, table="fact_installation", properties=db_props)
 
     # 8) Clean up
     spark.stop()
-
 
 if __name__ == "__main__":
     main()
