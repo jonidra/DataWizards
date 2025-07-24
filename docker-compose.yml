@@ -1,8 +1,16 @@
 version: "3.8"
 services:
   spark:
-    image: bitnami/spark:latest
-    command: ["spark-submit", "--master", "local[*]", "etl/etl.py", "--config", "config/config.yaml"]
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    command:
+      - spark-submit
+      - --master
+      - local[*]
+      - etl/etl.py
+      - --config
+      - config/config.yaml
     volumes:
       - ./:/app
     working_dir: /app
@@ -17,9 +25,12 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:

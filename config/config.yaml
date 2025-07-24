@@ -1,0 +1,10 @@
+db:
+  host: "db"
+  port: 5432
+  database: "sales"
+  user: "user"
+  password: "pass"
+
+etl:
+  raw_data_path: "./data/raw"
+  processed_data_path: "./data/processed"
