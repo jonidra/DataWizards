@@ -1,10 +1,21 @@
 # Dockerfile.spark
+
 FROM bitnami/spark:latest
 
 USER root
 
-# Copy requirements and install Python deps
+# Install curl (and ca‑certificates, just in case)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy & install Python deps
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
+# Download the Postgres JDBC driver into Spark's jars dir
+RUN curl -L https://jdbc.postgresql.org/download/postgresql-42.6.0.jar \
+     -o /opt/bitnami/spark/jars/postgresql-42.6.0.jar
+
+# Drop back to non‑root user
 USER 1001

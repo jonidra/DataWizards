@@ -61,6 +61,8 @@ def main():
             to_date(col("install_ts")).alias("install_date")
         )
     )
+    
+    print(f"▶️  Row count in base DF: {base.count()}")
 
     # 7a) Write out as Parquet
     base.write.mode("overwrite").parquet(f"{processed_path}/base_table.parquet")
