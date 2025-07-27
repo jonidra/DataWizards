@@ -48,4 +48,49 @@ The application includes the following data sources located in [this directory](
 - Ensure the endpoints are optimized for performance.
 - Document your code and provide clear instructions for running the application.
 
+## Quickstart
+
+### Remember to:
+- Add the .csv files in the /data/raw directory
+
+
+### 1. Build & start services  
+```bash
+docker-compose up --build -d
+```
+### 2. Initialize the database schema
+ ```bash
+chmod +x scripts/load_db.sh   # only first time  
+./scripts/load_db.sh
+```
+### 3. Load dimenstion tables
+```bash
+chmod +x scripts/load_dims.sh  # only first time  
+./scripts/load_dims.sh
+```
+### 4. Run the ETL and populate the fact table
+```bash
+chmod +x scripts/run_etl.sh   # only first time  
+./scripts/run_etl.sh
+```
+### 5. restart the API
+```bash
+docker-compose restart api
+
+```
+
+### 6. Try the endpoints
+
+```bash
+curl -X POST http://localhost:8000/lat-lon-revenue \
+     -H "Content-Type: application/json" \
+     -d '{"lat":26.67319,"lon":31.4976}'
+
+curl -X POST http://localhost:8000/city-revenue \
+     -H "Content-Type: application/json" \
+     -d '{"city_name":"London"}'
+
+```
+
+
 

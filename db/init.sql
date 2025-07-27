@@ -51,3 +51,29 @@ CREATE TABLE IF NOT EXISTS fact_installation (
 );
 
 CREATE INDEX IF NOT EXISTS idx_city_geom ON city USING GIST (geom);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS city_staging (
+  lat DOUBLE PRECISION,
+  lon DOUBLE PRECISION,
+  city VARCHAR(255),
+  country_code CHAR(2),
+  continent VARCHAR(50),
+  capital VARCHAR(50),
+  id INTEGER
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS product_staging (
+  id INTEGER,
+  reference VARCHAR(100),
+  name VARCHAR(255),
+  category_id INTEGER,
+  price_raw TEXT
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS installation_staging (
+  id INTEGER,
+  description TEXT,
+  product_id INTEGER,
+  customer_id INTEGER,
+  date_raw TEXT
+);
