@@ -52,6 +52,7 @@ The application includes the following data sources located in [this directory](
 
 ### Remember to:
 - Add the .csv files in the /data/raw directory
+- use http://localhost:8000/docs to see al the documentation for the endpoints in Swagger
 
 
 ### 1. Build & start services  
